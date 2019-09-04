@@ -373,6 +373,8 @@ VtolAttitudeControl::Run()
 			}
 		}
 
+		bool _mc_or_fw_virtual_att_sp_updated = false;
+
 		// check in which mode we are in and call mode specific functions
 		switch (_vtol_type->get_mode()) {
 		case mode::TRANSITION_TO_FW:
@@ -396,6 +398,7 @@ VtolAttitudeControl::Run()
 
 				_vtol_type->update_transition_state();
 				_v_att_sp_pub.publish(_v_att_sp);
+				_mc_or_fw_virtual_att_sp_updated = true;
 			}
 
 			break;
@@ -419,6 +422,8 @@ VtolAttitudeControl::Run()
 
 				_vtol_type->update_mc_state();
 				_v_att_sp_pub.publish(_v_att_sp);
+				_mc_or_fw_virtual_att_sp_updated = true;
+
 			}
 
 			break;
@@ -432,12 +437,16 @@ VtolAttitudeControl::Run()
 			if (_fw_virtual_att_sp_sub.update(&_fw_virtual_att_sp)) {
 				_vtol_type->update_fw_state();
 				_v_att_sp_pub.publish(_v_att_sp);
+				_mc_or_fw_virtual_att_sp_updated = true;
 			}
 
 			break;
 		}
 
-		_vtol_type->fill_actuator_outputs();
+		if (_mc_or_fw_virtual_att_sp_updated) {
+			_vtol_type->fill_actuator_outputs();
+		}
+
 		_actuators_0_pub.publish(_actuators_out_0);
 		_actuators_1_pub.publish(_actuators_out_1);
 
